@@ -1,3 +1,6 @@
+# Example script to run GRM
+# Author: Espen Eilertsen
+
 using SnpArrays, CSV, LinearAlgebra, DataFrames, HDF5
 
 function write_grm(G::AbstractMatrix, filename::AbstractString)
@@ -74,25 +77,15 @@ genedat_moba = SnpData(gfile)
 mobadat = DataFrame(CSV.File(gfile * "_" * sz * ".moba", missingstring = "NA"))
 
 # Step 1
-# Filter plink data according to moba data
-# --------------------------------------
-# This is slow, but does not require much memory (~30 min first version genotype data)
-# If we dont use des it will make .filtered fille in original storage location (genedat.src)
 println("Filter genotype data according to moba data: ")
 @time genedat_moba = SnpArrays.filter(genedat_moba, des = gfile * ".filtered", f_person = x -> x[:iid] in mobadat[!, :iid])
-# Dest file might not work on cluster?
+
 # Step 2
 # Rearrange filtered plink data according to moba data
 # --------------------------------------
 println("Arrange genotype data according to moba data: ")
 ord = something.(indexin(mobadat[!,:iid], genedat_moba.person_info[!,:iid])) # find index of filtered snp in moba
-# This allocates
-# 6 min all data
-# I think you need to copt the file and open with r+
-#cp(gfile * ".filtered.bim", gfile * ".filtered.reordered.bim", force = true)
-#cp(gfile * ".filtered.bed", gfile * ".filtered.reordered.bed", force = true)
-#cp(gfile * ".filtered.fam", gfile * ".filtered.reordered.fam", force = true)
-#genedat_moba = SnpData(gfile * ".filtered.reordered", "r+")
+
 @time SnpArrays.reorder!(genedat_moba, ord) # reorder snps
 #@time SnpArrays.reorder!(a, ord) # reorder snps
 genedat_moba.person_info
@@ -102,7 +95,6 @@ mobadat
 # Compute grm on the filtered and arranged plink genotype data
 # --------------------------------------
 println("Compute grm: ")
-# prøv dette
 GC.gc()
 @time A = 2 * grm_blocks(genedat_moba.snparray, 400)
 write_grm(A, "results/grm$(size(A, 2))")
