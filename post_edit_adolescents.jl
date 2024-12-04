@@ -1,3 +1,6 @@
+# Example script for interpreting trio-GCTA results
+# Authors: Espen Eilertsen, Laura Hegemann, Johanne Pettersen
+
 using LinearAlgebra
 using VCModels
 using JLD
