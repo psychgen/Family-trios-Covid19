@@ -1,3 +1,5 @@
+# Example script fitting trio_GCTA models
+#Authors: Espen Eilertsen, Laura Hegemann, Johanne Pettersen
 
 using VCModels
 using SnpArrays, DataFrames, CSV, LinearAlgebra
